@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  /* fondo del "escritorio" detrás del marco del móvil */
+  background: #e7e0e8;
+  font-family: 'Roboto', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
