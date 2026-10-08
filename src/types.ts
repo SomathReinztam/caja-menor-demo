@@ -13,6 +13,7 @@ export interface Provider {
   department: string
   municipality: string
   address: string
+  email: string
   responsability_type: string
 }
 
@@ -24,6 +25,8 @@ export interface RutExtraction {
   department: string | null
   municipality: string | null
   address: string | null
+  /** Correo del RUT (suele venir en facturadores electrónicos); null si no aparece. */
+  email: string | null
   /** Códigos DIAN (ej. "52-49") construidos desde las responsabilidades del RUT. */
   responsability_type: string
   /** Texto crudo de cada responsabilidad/calidad/atributo del RUT. */

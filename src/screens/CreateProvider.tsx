@@ -29,6 +29,7 @@ export default function CreateProvider({
     department: '',
     municipality: '',
     address: '',
+    email: '',
     responsability_type: '',
   })
 
@@ -46,6 +47,7 @@ export default function CreateProvider({
         department: r.department ?? '',
         municipality: r.municipality ?? '',
         address: r.address ?? '',
+        email: r.email ?? '',
         responsability_type: r.responsability_type ?? '',
       })
       setResponsibilities(r.responsibilities ?? [])
@@ -59,6 +61,8 @@ export default function CreateProvider({
 
   async function save() {
     if (!f.name.trim() || !f.document_number.trim()) return showToast('Completa nombre y NIT', 'warning')
+    if (!f.email.trim())
+      return showToast('Completa el correo del proveedor (Odoo lo necesita para la factura electrónica)', 'warning')
     setSaving(true)
     try {
       await api.createProvider({ ...f, document_type: 'NIT' }, file)
@@ -85,6 +89,14 @@ export default function CreateProvider({
         )}
         <Field label="Razón social / establecimiento" value={f.name} onChange={(v) => upd('name', v)} placeholder="Nombre del comercio" />
         <Field label="NIT" value={f.document_number} onChange={(v) => upd('document_number', v)} placeholder="900123456-7" inputMode="numeric" />
+        <div>
+          <Field label="Correo electrónico" value={f.email} onChange={(v) => upd('email', v)} placeholder="correo@proveedor.co" type="email" />
+          {extracted && !f.email.trim() && (
+            <div className="text-xs text-warning mt-1">
+              No se encontró el correo en el RUT; complétalo (Odoo lo exige para la factura electrónica).
+            </div>
+          )}
+        </div>
         <div className="bg-surface rounded-input px-3 py-3">
           <Switch label="¿Facturador electrónico?" checked={f.is_electronic_biller} onChange={(v) => upd('is_electronic_biller', v)} />
           <div className="text-xs text-faint mt-1">Si no lo es, el gasto se legalizará con una cuenta de cobro.</div>
