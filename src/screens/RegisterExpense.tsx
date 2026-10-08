@@ -94,7 +94,7 @@ export default function RegisterExpense({
 
     setSaving(true)
     try {
-      const expense = await api.createExpense({
+      let expense = await api.createExpense({
         provider: choice === 'self' ? null : choice.id,
         payment_method: paymentMethod,
         payer,
@@ -105,6 +105,15 @@ export default function RegisterExpense({
         total_value: cleanItems.reduce((s, i) => s + i.value, 0),
         items: cleanItems,
       })
+      // El create va en JSON y no lleva el archivo; se sube aparte para que el
+      // soporte quede disponible en la revisión contable (TSF) y en Odoo.
+      if (file) {
+        try {
+          expense = await api.uploadSourceFile(expense.id, file)
+        } catch (e: any) {
+          showToast('El gasto se registró, pero no se pudo subir el soporte: ' + shortErr(e), 'warning')
+        }
+      }
       setResult(expense)
     } catch (e: any) {
       showToast('No se pudo registrar: ' + shortErr(e), 'danger')

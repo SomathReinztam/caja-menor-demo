@@ -107,6 +107,19 @@ export const api = {
     }).then(handle)
   },
 
+  // Sube el soporte (imagen/PDF) DESPUÉS de crear el gasto. El create va en JSON
+  // (por los ítems anidados) y no puede transportar el archivo, así que la imagen
+  // de la factura se sube aquí para que quede en TSF y Odoo.
+  uploadSourceFile(id: string, file: File): Promise<Expense> {
+    const fd = new FormData()
+    fd.append('source_file', file)
+    return fetch(`${BASE}/expenses/${id}/source-file/`, {
+      method: 'POST',
+      headers: headers(),
+      body: fd,
+    }).then(handle)
+  },
+
   listExpenses(): Promise<Expense[]> {
     return fetch(`${BASE}/expenses/`, { headers: headers() })
       .then(handle)
