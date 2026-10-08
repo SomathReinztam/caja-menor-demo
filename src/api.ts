@@ -40,6 +40,7 @@ export interface ProviderInput {
   department: string
   municipality: string
   address: string
+  responsability_type: string
 }
 
 export interface ExpenseInput {
@@ -75,6 +76,7 @@ export const api = {
     fd.append('department', p.department)
     fd.append('municipality', p.municipality)
     fd.append('address', p.address)
+    fd.append('responsability_type', p.responsability_type)
     if (rutFile) fd.append('rut_file', rutFile)
     return fetch(`${BASE}/providers/`, {
       method: 'POST',

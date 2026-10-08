@@ -21,6 +21,7 @@ export default function CreateProvider({
   const [extracting, setExtracting] = useState(false)
   const [saving, setSaving] = useState(false)
   const [extracted, setExtracted] = useState(false)
+  const [responsibilities, setResponsibilities] = useState<string[]>([])
   const [f, setF] = useState({
     name: '',
     document_number: '',
@@ -28,6 +29,7 @@ export default function CreateProvider({
     department: '',
     municipality: '',
     address: '',
+    responsability_type: '',
   })
 
   const upd = (k: keyof typeof f, v: string | boolean) => setF((s) => ({ ...s, [k]: v }))
@@ -44,7 +46,9 @@ export default function CreateProvider({
         department: r.department ?? '',
         municipality: r.municipality ?? '',
         address: r.address ?? '',
+        responsability_type: r.responsability_type ?? '',
       })
+      setResponsibilities(r.responsibilities ?? [])
       setExtracted(true)
     } catch (e) {
       showToast('No se pudo leer el RUT: ' + shortErr(e), 'danger')
@@ -85,6 +89,24 @@ export default function CreateProvider({
           <Switch label="¿Facturador electrónico?" checked={f.is_electronic_biller} onChange={(v) => upd('is_electronic_biller', v)} />
           <div className="text-xs text-faint mt-1">Si no lo es, el gasto se legalizará con una cuenta de cobro.</div>
         </div>
+        {extracted && (f.responsability_type || responsibilities.length > 0) && (
+          <div className="bg-surface rounded-input px-3 py-3">
+            <div className="text-xs font-semibold text-ink mb-1">Responsabilidades fiscales (del RUT)</div>
+            {responsibilities.length > 0 ? (
+              <ul className="text-xs text-faint list-disc pl-4 space-y-0.5">
+                {responsibilities.map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-xs text-faint">Sin responsabilidades detectadas.</div>
+            )}
+            <div className="text-xs text-faint mt-2">
+              Código DIAN: <span className="font-semibold text-ink">{f.responsability_type || '—'}</span>
+              <span className="block mt-0.5">Se usa para calcular IVA/retenciones en Odoo. El contador lo valida.</span>
+            </div>
+          </div>
+        )}
         <Field label="Departamento" value={f.department} onChange={(v) => upd('department', v)} />
         <Field label="Municipio" value={f.municipality} onChange={(v) => upd('municipality', v)} />
         <Field label="Dirección" value={f.address} onChange={(v) => upd('address', v)} />
