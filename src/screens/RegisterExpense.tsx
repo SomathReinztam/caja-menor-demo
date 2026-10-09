@@ -37,7 +37,8 @@ export default function RegisterExpense({
   const [providers, setProviders] = useState<Provider[] | null>(null)
   const [choice, setChoice] = useState<ProviderChoice>(null)
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
-  const [payer, setPayer] = useState<'unergy' | 'solenium'>('unergy')
+  // Por ahora el pagador es siempre Unergy (Solenium tiene otro Odoo; se agregará después).
+  const payer = 'unergy'
   const [project, setProject] = useState('')
 
   const [file, setFile] = useState<File | null>(null)
@@ -166,15 +167,6 @@ export default function RegisterExpense({
             options={[
               { value: 'cash', label: 'Efectivo' },
               { value: 'card', label: 'Tarjeta' },
-            ]}
-          />
-          <Segmented
-            label="Pagador"
-            value={payer}
-            onChange={setPayer}
-            options={[
-              { value: 'unergy', label: 'Unergy' },
-              { value: 'solenium', label: 'Solenium' },
             ]}
           />
           <Field label="Proyecto (opcional)" value={project} onChange={setProject} placeholder="En qué estás trabajando" />
