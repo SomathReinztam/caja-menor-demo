@@ -61,6 +61,8 @@ export default function RegisterExpense({
   const total = items.reduce((s, it) => s + (parseInt(it.value || '0', 10) || 0), 0)
   const isBiller = choice !== 'self' && choice !== null && choice.is_electronic_biller
   const willBeChargeAccount = choice !== null && !isBiller
+  // Proveedor no facturador con RUT → la cuenta de cobro va a su nombre y él firma.
+  const providerIssues = willBeChargeAccount && choice !== 'self' && !!choice?.rut_file
 
   async function onFile(f: File) {
     setFile(f)
@@ -150,9 +152,19 @@ export default function RegisterExpense({
             <div className="text-base font-semibold text-ink">Usar mis datos</div>
             <div className="text-sm text-faint">Sin proveedor · se generará una cuenta de cobro</div>
           </button>
-          {willBeChargeAccount && (
+          {willBeChargeAccount && choice !== 'self' && (
             <div className="text-xs text-warning bg-warningBg rounded-input px-3 py-2">
-              Este proveedor no es facturador → se generará una <b>cuenta de cobro</b> con tus datos fiscales.
+              {providerIssues ? (
+                <>
+                  Este proveedor no es facturador → se generará una <b>cuenta de cobro a nombre del proveedor</b>.
+                  Él debe firmarla en este celular.
+                </>
+              ) : (
+                <>
+                  Este proveedor no es facturador y no tiene RUT → se generará una <b>cuenta de cobro con tus datos
+                  fiscales</b>.
+                </>
+              )}
             </div>
           )}
         </section>
@@ -278,6 +290,11 @@ function ResultView({ expense, onHome, onSeeExpenses }: { expense: Expense; onHo
               </Badge>
             )}
           </div>
+          {isCC && expense.zapsign_sign_url && expense.charge_account_issuer === 'provider' && (
+            <div className="mt-3 text-xs text-ink bg-chip rounded-input px-3 py-2">
+              La cuenta de cobro está a nombre del proveedor: <b>entrégale el celular</b> para que firme en pantalla.
+            </div>
+          )}
           {isCC && expense.zapsign_sign_url && (
             <a
               href={expense.zapsign_sign_url}
@@ -285,7 +302,8 @@ function ResultView({ expense, onHome, onSeeExpenses }: { expense: Expense; onHo
               rel="noreferrer"
               className="mt-4 w-full h-12 rounded-pill bg-primary text-white inline-flex items-center justify-center gap-2 text-sm font-semibold"
             >
-              <Icon name="edit" size={18} /> Firmar la cuenta de cobro
+              <Icon name="edit" size={18} />{' '}
+              {expense.charge_account_issuer === 'provider' ? 'Firma del proveedor' : 'Firmar la cuenta de cobro'}
             </a>
           )}
           {isCC && !expense.zapsign_sign_url && (

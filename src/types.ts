@@ -15,6 +15,8 @@ export interface Provider {
   address: string
   email: string
   responsability_type: string
+  /** URL del RUT; null si el proveedor no tiene RUT cargado. */
+  rut_file: string | null
 }
 
 export interface RutExtraction {
@@ -73,6 +75,8 @@ export interface Expense {
   total_value: number
   status: string
   signature_status: string
+  /** A nombre de quién va la cuenta de cobro (y quién firma). '' en facturas. */
+  charge_account_issuer: '' | 'provider' | 'visitor'
   zapsign_sign_url: string
   items: { id: number; concept: string; value: number }[]
   created_at: string
