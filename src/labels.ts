@@ -21,6 +21,19 @@ export const statusTone: Record<string, Tone> = {
   rejected: 'danger',
 }
 
+// Estado que ve el visitador en "Mis gastos" (backend: review_status).
+export const reviewLabel: Record<string, string> = {
+  in_review: 'En revisión',
+  accepted: 'Aceptado',
+  rejected: 'Rechazado',
+}
+
+export const reviewTone: Record<string, Tone> = {
+  in_review: 'warning',
+  accepted: 'success',
+  rejected: 'danger',
+}
+
 export const signatureLabel: Record<string, string> = {
   pending: 'Firma pendiente',
   signed: 'Firmada',

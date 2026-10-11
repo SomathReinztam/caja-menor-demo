@@ -74,6 +74,12 @@ export interface Expense {
   emitter_nit: string
   total_value: number
   status: string
+  /** Estado simplificado para el visitador. */
+  review_status: 'in_review' | 'accepted' | 'rejected'
+  /** Motivo si contabilidad lo rechazó. */
+  rejection_reason: string
+  /** Solo antes de que contabilidad lo verifique (y se envíe a Odoo). */
+  can_delete: boolean
   signature_status: string
   /** A nombre de quién va la cuenta de cobro (y quién firma). '' en facturas. */
   charge_account_issuer: '' | 'provider' | 'visitor'

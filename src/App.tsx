@@ -49,7 +49,7 @@ export default function App() {
       {screen === 'registerExpense' && (
         <RegisterExpense onBack={home} onSeeExpenses={() => setScreen('expenses')} showToast={showToast} />
       )}
-      {screen === 'expenses' && <ExpenseList onBack={home} />}
+      {screen === 'expenses' && <ExpenseList onBack={home} showToast={showToast} />}
       {screen === 'taxProfile' && <TaxProfile onBack={home} onDone={home} showToast={showToast} />}
       <Toast toast={toast} />
     </PhoneFrame>

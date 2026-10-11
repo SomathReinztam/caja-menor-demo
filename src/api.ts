@@ -124,6 +124,11 @@ export const api = {
     }).then(handle)
   },
 
+  // 409 si el gasto ya se verificó (enviado a Odoo) o se rechazó.
+  deleteExpense(id: string): Promise<null> {
+    return fetch(`${BASE}/expenses/${id}/`, { method: 'DELETE', headers: headers() }).then(handle)
+  },
+
   listExpenses(): Promise<Expense[]> {
     return fetch(`${BASE}/expenses/`, { headers: headers() })
       .then(handle)
