@@ -67,6 +67,9 @@ export interface Expense {
   provider: number | null
   document_kind: 'invoice' | 'charge_account'
   payment_method: string
+  /** Tarjeta con la que se pagó (id); null si fue efectivo o es un gasto anterior. */
+  card: number | null
+  card_detail: Card | null
   payer: string
   project_name: string
   invoice_number: string
@@ -86,4 +89,18 @@ export interface Expense {
   zapsign_sign_url: string
   items: { id: number; concept: string; value: number }[]
   created_at: string
+}
+
+export type CardBank = 'bancolombia' | 'other'
+export type CardType = 'credit' | 'debit'
+
+/** Tarjeta del visitador (solo últimos 4 dígitos; nunca el número completo). */
+export interface Card {
+  id: number
+  visitor: number
+  bank: CardBank
+  card_type: CardType
+  last4: string
+  alias: string
+  is_active: boolean
 }

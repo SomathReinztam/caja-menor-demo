@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { Expense } from '../types'
 import { Badge, Card, Spinner, TopBar, type Tone } from '../components/ui'
-import { docKindLabel, fmtCop, reviewLabel, reviewTone, signatureLabel, signatureTone } from '../labels'
+import { cardLabel, docKindLabel, fmtCop, reviewLabel, reviewTone, signatureLabel, signatureTone } from '../labels'
 
 export default function ExpenseList({
   onBack,
@@ -76,6 +76,7 @@ export default function ExpenseList({
                 </Badge>
               )}
               <Badge tone="neutral">{e.payer === 'unergy' ? 'Unergy' : 'Solenium'}</Badge>
+              {e.card_detail && <Badge tone="info">{cardLabel(e.card_detail)}</Badge>}
             </div>
             {e.review_status === 'rejected' && e.rejection_reason && (
               <div className="mt-3 text-xs text-danger bg-dangerBg rounded-input px-3 py-2">

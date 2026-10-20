@@ -47,7 +47,7 @@ export default function App() {
       )}
       {screen === 'createProvider' && <CreateProvider onBack={home} onDone={home} showToast={showToast} />}
       {screen === 'registerExpense' && (
-        <RegisterExpense onBack={home} onSeeExpenses={() => setScreen('expenses')} showToast={showToast} />
+        <RegisterExpense onBack={home} onSeeExpenses={() => setScreen('expenses')} onGoTaxProfile={() => setScreen('taxProfile')} showToast={showToast} />
       )}
       {screen === 'expenses' && <ExpenseList onBack={home} showToast={showToast} />}
       {screen === 'taxProfile' && <TaxProfile onBack={home} onDone={home} showToast={showToast} />}

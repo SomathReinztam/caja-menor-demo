@@ -50,3 +50,18 @@ export function fmtCop(n: number | null | undefined): string {
   if (n === null || n === undefined) return '—'
   return '$' + Math.round(n).toLocaleString('es-CO')
 }
+
+export const bankLabel: Record<string, string> = {
+  bancolombia: 'Bancolombia',
+  other: 'Otro banco',
+}
+
+export const cardTypeLabel: Record<string, string> = {
+  credit: 'Crédito',
+  debit: 'Débito',
+}
+
+export function cardLabel(c: { bank: string; card_type: string; last4: string; alias?: string }): string {
+  const base = `${bankLabel[c.bank] ?? c.bank} ${cardTypeLabel[c.card_type] ?? c.card_type} ····${c.last4}`
+  return c.alias ? `${c.alias} · ${base}` : base
+}

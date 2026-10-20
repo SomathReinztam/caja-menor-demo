@@ -1,4 +1,4 @@
-import type { Expense, InvoiceExtraction, Provider, RutExtraction, TaxProfile } from './types'
+import type { Card, CardBank, CardType, Expense, InvoiceExtraction, Provider, RutExtraction, TaxProfile } from './types'
 
 const BASE = '/api/cajita-menor/app/v2'
 
@@ -47,6 +47,7 @@ export interface ProviderInput {
 export interface ExpenseInput {
   provider: number | null
   payment_method: string
+  card: number | null
   payer: string
   project_name: string
   invoice_number: string
@@ -133,6 +134,25 @@ export const api = {
     return fetch(`${BASE}/expenses/`, { headers: headers() })
       .then(handle)
       .then((d) => asList<Expense>(d))
+  },
+
+  listCards(): Promise<Card[]> {
+    return fetch(`${BASE}/cards/?visitor=${currentVisitorId}`, { headers: headers() })
+      .then(handle)
+      .then((d) => asList<Card>(d))
+  },
+
+  createCard(c: { bank: CardBank; card_type: CardType; last4: string; alias: string }): Promise<Card> {
+    return fetch(`${BASE}/cards/`, {
+      method: 'POST',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ ...c, visitor: currentVisitorId }),
+    }).then(handle)
+  },
+
+  // 204 si se borró; 200 con la tarjeta (is_active=false) si ya tenía gastos y solo se desactivó.
+  deleteCard(id: number): Promise<Card | null> {
+    return fetch(`${BASE}/cards/${id}/`, { method: 'DELETE', headers: headers() }).then(handle)
   },
 
   getTaxProfile(): Promise<TaxProfile | null> {

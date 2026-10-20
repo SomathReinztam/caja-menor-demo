@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { Tone } from '../components/ui'
 import { Button, Card, Field, FileUpload, LoadingOverlay, Segmented, Spinner, TopBar } from '../components/ui'
+import CardsSection from '../components/CardsSection'
 
 function shortErr(e: any) {
   const m = String(e?.message ?? e)
@@ -129,6 +130,8 @@ export default function TaxProfile({
             Guardar perfil fiscal
           </Button>
         </div>
+        <CardsSection showToast={showToast} />
+        <div className="pb-6" />
       </div>
       {extracting && <LoadingOverlay text="Leyendo tu RUT con IA…" />}
     </div>
