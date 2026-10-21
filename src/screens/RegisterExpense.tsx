@@ -38,7 +38,7 @@ export default function RegisterExpense({
 }) {
   const [providers, setProviders] = useState<Provider[] | null>(null)
   const [choice, setChoice] = useState<ProviderChoice>(null)
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'own'>('cash')
   // Por ahora el pagador es siempre Unergy (Solenium tiene otro Odoo; se agregará después).
   const payer = 'unergy'
   const [project, setProject] = useState('')
@@ -203,8 +203,15 @@ export default function RegisterExpense({
             options={[
               { value: 'cash', label: 'Efectivo' },
               { value: 'card', label: 'Tarjeta' },
+              { value: 'own', label: 'Propio' },
             ]}
           />
+          {paymentMethod === 'own' && (
+            <div className="text-xs text-warning bg-warningBg rounded-input px-3 py-2">
+              Úsalo si pagaste con tu dinero o con una tarjeta que no es la que te asignó Unergy. Unergy te lo
+              reembolsará.
+            </div>
+          )}
           {paymentMethod === 'card' && (
             <div className="space-y-2">
               <span className="block text-xs font-semibold text-ink">Tarjeta</span>

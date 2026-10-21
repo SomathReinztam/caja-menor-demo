@@ -63,7 +63,7 @@ esperado (ver §9).
 |---|---|
 | `document_type` | `CC` (cédula), `NIT` |
 | `document_kind` (gasto) | `invoice` (factura), `charge_account` (cuenta de cobro) |
-| `payment_method` | `cash` (efectivo), `card` (tarjeta; requiere `card`) |
+| `payment_method` | `cash` (efectivo), `card` (tarjeta; requiere `card`), `own` (dinero propio u otra tarjeta; Unergy se lo reembolsa al visitador, no lleva `card`) |
 | `bank` (tarjeta) | `bancolombia`, `other` |
 | `card_type` | `credit`, `debit` |
 | `payer` (pagador) | `unergy` (por ahora **siempre** `unergy`; ver nota abajo). `solenium` existe en el backend pero **no se usa todavía** |
