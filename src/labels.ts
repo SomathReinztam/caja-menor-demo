@@ -59,9 +59,15 @@ export const bankLabel: Record<string, string> = {
 export const cardTypeLabel: Record<string, string> = {
   credit: 'Crédito',
   debit: 'Débito',
+  prepaid: 'Prepago',
 }
 
 export function cardLabel(c: { bank: string; card_type: string; last4: string; alias?: string }): string {
   const base = `${bankLabel[c.bank] ?? c.bank} ${cardTypeLabel[c.card_type] ?? c.card_type} ····${c.last4}`
   return c.alias ? `${c.alias} · ${base}` : base
+}
+
+export const movementLabel: Record<string, string> = {
+  deposit: 'Consignación',
+  card_load: 'Recarga de tarjeta',
 }

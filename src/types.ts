@@ -92,7 +92,7 @@ export interface Expense {
 }
 
 export type CardBank = 'bancolombia' | 'other'
-export type CardType = 'credit' | 'debit'
+export type CardType = 'credit' | 'debit' | 'prepaid'
 
 /** Tarjeta del visitador (solo últimos 4 dígitos; nunca el número completo). */
 export interface Card {
@@ -103,4 +103,17 @@ export interface Card {
   last4: string
   alias: string
   is_active: boolean
+}
+
+/** Consignación de efectivo (la reporta el visitador) o recarga de la tarjeta (la registra contabilidad). */
+export interface Movement {
+  id: number
+  visitor: number
+  kind: 'deposit' | 'card_load'
+  amount: string
+  date: string
+  /** URL del comprobante; solo en consignaciones. */
+  receipt_file: string | null
+  notes: string
+  created_at: string
 }

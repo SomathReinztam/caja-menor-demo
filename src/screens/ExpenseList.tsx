@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import type { Expense } from '../types'
+import type { Expense, Movement } from '../types'
 import { Badge, Card, Spinner, TopBar, type Tone } from '../components/ui'
-import { cardLabel, docKindLabel, fmtCop, reviewLabel, reviewTone, signatureLabel, signatureTone } from '../labels'
+import {
+  cardLabel,
+  docKindLabel,
+  fmtCop,
+  movementLabel,
+  reviewLabel,
+  reviewTone,
+  signatureLabel,
+  signatureTone,
+} from '../labels'
 
 export default function ExpenseList({
   onBack,
@@ -12,6 +21,7 @@ export default function ExpenseList({
   showToast: (text: string, tone?: Tone) => void
 }) {
   const [items, setItems] = useState<Expense[] | null>(null)
+  const [movements, setMovements] = useState<Movement[]>([])
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -29,16 +39,38 @@ export default function ExpenseList({
     }
   }
 
+  async function onDeleteMovement(m: Movement) {
+    if (!window.confirm('¿Eliminar esta consignación? No se puede deshacer.')) return
+    try {
+      await api.deleteMovement(m.id)
+      setMovements((prev) => prev.filter((x) => x.id !== m.id))
+      showToast('Consignación eliminada', 'success')
+    } catch (err) {
+      showToast('No se pudo eliminar: ' + String((err as Error).message), 'danger')
+    }
+  }
+
   useEffect(() => {
     api
       .listExpenses()
       .then(setItems)
       .catch((e) => setError(String(e.message)))
+    api
+      .listMovements()
+      .then(setMovements)
+      .catch((e) => setError(String(e.message)))
   }, [])
+
+  // Una sola línea de tiempo: gastos, consignaciones y recargas, lo más reciente primero.
+  type Row = { kind: 'expense'; date: string; at: string; expense: Expense } | { kind: 'movement'; date: string; at: string; movement: Movement }
+  const rows: Row[] = [
+    ...(items ?? []).map((expense): Row => ({ kind: 'expense', date: expense.issue_date, at: expense.created_at, expense })),
+    ...movements.map((movement): Row => ({ kind: 'movement', date: movement.date, at: movement.created_at, movement })),
+  ].sort((a, b) => b.date.localeCompare(a.date) || b.at.localeCompare(a.at))
 
   return (
     <div className="flex-1 flex flex-col">
-      <TopBar title="Mis gastos" onBack={onBack} />
+      <TopBar title="Mi historial" onBack={onBack} />
       <div className="p-4 space-y-3">
         {items === null && !error && (
           <div className="flex justify-center py-12 text-faint">
@@ -50,10 +82,39 @@ export default function ExpenseList({
             <div className="text-sm text-danger break-words">{error}</div>
           </Card>
         )}
-        {items && items.length === 0 && (
-          <div className="text-center text-faint py-12 text-sm">Aún no has registrado gastos.</div>
+        {items && rows.length === 0 && (
+          <div className="text-center text-faint py-12 text-sm">Aún no tienes movimientos.</div>
         )}
-        {items?.map((e) => (
+        {rows.map((row) => {
+          if (row.kind === 'movement')
+            return (
+          <Card key={`m${row.movement.id}`}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-base font-semibold text-ink">{movementLabel[row.movement.kind]}</div>
+                <div className="text-sm text-faint truncate">{row.movement.date}</div>
+              </div>
+              <div className={`text-base font-semibold shrink-0 ${row.movement.kind === 'card_load' ? 'text-success' : 'text-ink'}`}>
+                {row.movement.kind === 'card_load' ? '+' : '−'}
+                {fmtCop(Number(row.movement.amount))}
+              </div>
+            </div>
+            {row.movement.kind === 'deposit' && (
+              <div className="mt-3 flex items-center gap-4">
+                {row.movement.receipt_file && (
+                  <a href={row.movement.receipt_file} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary">
+                    Ver comprobante
+                  </a>
+                )}
+                <button onClick={() => onDeleteMovement(row.movement)} className="text-sm font-semibold text-danger">
+                  Eliminar
+                </button>
+              </div>
+            )}
+          </Card>
+            )
+          const e = row.expense
+          return (
           <Card key={e.id}>
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -103,7 +164,8 @@ export default function ExpenseList({
               </button>
             )}
           </Card>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

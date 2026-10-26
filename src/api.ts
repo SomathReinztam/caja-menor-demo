@@ -1,4 +1,14 @@
-import type { Card, CardBank, CardType, Expense, InvoiceExtraction, Provider, RutExtraction, TaxProfile } from './types'
+import type {
+  Card,
+  CardBank,
+  CardType,
+  Expense,
+  InvoiceExtraction,
+  Movement,
+  Provider,
+  RutExtraction,
+  TaxProfile,
+} from './types'
 
 const BASE = '/api/cajita-menor/app/v2'
 
@@ -153,6 +163,27 @@ export const api = {
   // 204 si se borró; 200 con la tarjeta (is_active=false) si ya tenía gastos y solo se desactivó.
   deleteCard(id: number): Promise<Card | null> {
     return fetch(`${BASE}/cards/${id}/`, { method: 'DELETE', headers: headers() }).then(handle)
+  },
+
+  // Consignaciones del visitador y recargas de su tarjeta (estas últimas solo de lectura).
+  listMovements(): Promise<Movement[]> {
+    return fetch(`${BASE}/movements/?visitor=${currentVisitorId}`, { headers: headers() })
+      .then(handle)
+      .then((d) => asList<Movement>(d))
+  },
+
+  createDeposit(d: { amount: number; date: string }, receipt: File): Promise<Movement> {
+    const fd = new FormData()
+    fd.append('visitor', String(currentVisitorId))
+    fd.append('amount', String(d.amount))
+    fd.append('date', d.date)
+    fd.append('receipt_file', receipt)
+    return fetch(`${BASE}/movements/`, { method: 'POST', headers: headers(), body: fd }).then(handle)
+  },
+
+  // 409 si el periodo de arqueo de esa fecha ya está cerrado.
+  deleteMovement(id: number): Promise<null> {
+    return fetch(`${BASE}/movements/${id}/`, { method: 'DELETE', headers: headers() }).then(handle)
   },
 
   getTaxProfile(): Promise<TaxProfile | null> {

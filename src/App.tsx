@@ -8,6 +8,7 @@ import CreateProvider from './screens/CreateProvider'
 import RegisterExpense from './screens/RegisterExpense'
 import ExpenseList from './screens/ExpenseList'
 import TaxProfile from './screens/TaxProfile'
+import Deposit from './screens/Deposit'
 
 // Visitadores del servidor dev (id = visitor_visitor.id; todos con usuario asociado,
 // requisito del modo demo). El demo "actúa como" uno de ellos; se manda como header
@@ -44,7 +45,7 @@ const VISITORS: Visitor[] = [
   { id: 39, name: 'Dina Marcela Navarro Machado' },
 ]
 
-type Screen = 'home' | 'createProvider' | 'registerExpense' | 'expenses' | 'taxProfile'
+type Screen = 'home' | 'createProvider' | 'registerExpense' | 'expenses' | 'taxProfile' | 'deposit'
 
 export default function App() {
   const [visitorId, setVisitorId] = useState(VISITORS[0].id)
@@ -75,6 +76,7 @@ export default function App() {
         <RegisterExpense onBack={home} onSeeExpenses={() => setScreen('expenses')} onGoTaxProfile={() => setScreen('taxProfile')} showToast={showToast} />
       )}
       {screen === 'expenses' && <ExpenseList onBack={home} showToast={showToast} />}
+      {screen === 'deposit' && <Deposit onBack={home} onDone={() => setScreen('expenses')} showToast={showToast} />}
       {screen === 'taxProfile' && <TaxProfile onBack={home} onDone={home} showToast={showToast} />}
       <Toast toast={toast} />
     </PhoneFrame>

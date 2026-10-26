@@ -42,9 +42,9 @@ export default function RegisterExpense({
   // Por ahora el pagador es siempre Unergy (Solenium tiene otro Odoo; se agregará después).
   const payer = 'unergy'
   const [project, setProject] = useState('')
-  // Tarjetas del visitador (se cargan al elegir pago con tarjeta). Sin tarjeta no se puede registrar.
-  const [cards, setCards] = useState<CardT[] | null>(null)
-  const [cardId, setCardId] = useState<number | null>(null)
+  // Tarjeta prepago del visitador (se carga al elegir pago con tarjeta). El backend la asigna
+  // solo; aquí únicamente se avisa si no tiene ninguna registrada.
+  const [card, setCard] = useState<CardT | null | undefined>(undefined)
 
   const [file, setFile] = useState<File | null>(null)
   const [extracting, setExtracting] = useState(false)
@@ -65,17 +65,13 @@ export default function RegisterExpense({
 
   useEffect(() => {
     if (paymentMethod !== 'card') return
-    setCards(null)
+    setCard(undefined)
     api
       .listCards()
-      .then((list) => {
-        const active = list.filter((c) => c.is_active)
-        setCards(active)
-        setCardId((cur) => (active.some((c) => c.id === cur) ? cur : active.length === 1 ? active[0].id : null))
-      })
+      .then((list) => setCard(list.find((c) => c.is_active) ?? null))
       .catch((e) => {
-        setCards([])
-        showToast('No se pudieron cargar las tarjetas: ' + shortErr(e), 'danger')
+        setCard(null)
+        showToast('No se pudo cargar la tarjeta: ' + shortErr(e), 'danger')
       })
   }, [paymentMethod])
 
@@ -115,15 +111,14 @@ export default function RegisterExpense({
       .map((it) => ({ concept: it.concept.trim(), value: parseInt(it.value, 10) || 0 }))
     if (!cleanItems.length) return showToast('Agrega al menos un ítem (concepto y valor)', 'warning')
     if (!issueDate) return showToast('Indica la fecha del gasto', 'warning')
-    if (paymentMethod === 'card' && cardId === null)
-      return showToast('Selecciona la tarjeta con la que pagaste', 'warning')
+    if (paymentMethod === 'card' && !card) return showToast('Registra tu tarjeta en tu perfil fiscal', 'warning')
 
     setSaving(true)
     try {
       let expense = await api.createExpense({
         provider: choice === 'self' ? null : choice.id,
         payment_method: paymentMethod,
-        card: paymentMethod === 'card' ? cardId : null,
+        card: null,
         payer,
         project_name: project,
         invoice_number: invoiceNumber,
@@ -212,36 +207,22 @@ export default function RegisterExpense({
               reembolsará.
             </div>
           )}
-          {paymentMethod === 'card' && (
-            <div className="space-y-2">
-              <span className="block text-xs font-semibold text-ink">Tarjeta</span>
-              {cards === null && (
-                <div className="flex justify-center py-3 text-faint">
-                  <Spinner size={20} />
-                </div>
-              )}
-              {cards !== null && cards.length === 0 && (
-                <div className="text-xs text-warning bg-warningBg rounded-input px-3 py-2">
-                  No tienes tarjetas registradas. Agrégalas en tu perfil fiscal para poder registrar gastos con
-                  tarjeta.
-                  <button onClick={onGoTaxProfile} className="block mt-2 font-semibold text-primary">
-                    Ir a mi perfil fiscal
-                  </button>
-                </div>
-              )}
-              {cards?.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setCardId(c.id)}
-                  className={cx(
-                    'w-full text-left rounded-card p-3 border transition text-sm font-semibold text-ink',
-                    cardId === c.id ? 'bg-chip border-chip' : 'bg-surface border-transparent',
-                  )}
-                >
-                  {cardLabel(c)}
-                </button>
-              ))}
+          {paymentMethod === 'card' && card === undefined && (
+            <div className="flex justify-center py-3 text-faint">
+              <Spinner size={20} />
             </div>
+          )}
+          {paymentMethod === 'card' && card === null && (
+            <div className="text-xs text-warning bg-warningBg rounded-input px-3 py-2">
+              No tienes una tarjeta registrada. Agrégala en tu perfil fiscal para poder registrar gastos con
+              tarjeta.
+              <button onClick={onGoTaxProfile} className="block mt-2 font-semibold text-primary">
+                Ir a mi perfil fiscal
+              </button>
+            </div>
+          )}
+          {paymentMethod === 'card' && card && (
+            <div className="text-xs text-faint">Se usará tu tarjeta {cardLabel(card)}.</div>
           )}
           <Field label="Proyecto (opcional)" value={project} onChange={setProject} placeholder="En qué estás trabajando" />
         </section>
@@ -295,7 +276,7 @@ export default function RegisterExpense({
         </section>
 
         <div className="pt-1 pb-6">
-          <Button icon="check" onClick={submit} loading={saving} disabled={choice === null || (paymentMethod === 'card' && cardId === null)}>
+          <Button icon="check" onClick={submit} loading={saving} disabled={choice === null || (paymentMethod === 'card' && !card)}>
             {willBeChargeAccount ? 'Generar cuenta de cobro' : 'Registrar gasto'}
           </Button>
         </div>

@@ -1,7 +1,7 @@
 import type { Visitor } from '../types'
 import { Card, Icon } from '../components/ui'
 
-type Screen = 'createProvider' | 'registerExpense' | 'expenses' | 'taxProfile'
+type Screen = 'createProvider' | 'registerExpense' | 'expenses' | 'taxProfile' | 'deposit'
 
 interface Props {
   visitor: Visitor
@@ -94,9 +94,15 @@ export default function Home({ visitor, visitors, onChangeVisitor, onNavigate }:
           onClick={() => onNavigate('registerExpense')}
         />
         <ActionCard
+          icon="upload"
+          title="Consignar efectivo"
+          subtitle="Devuelve efectivo y sube el comprobante"
+          onClick={() => onNavigate('deposit')}
+        />
+        <ActionCard
           icon="list"
-          title="Mis gastos"
-          subtitle="Seguimiento y estado"
+          title="Mi historial"
+          subtitle="Gastos, consignaciones y recargas"
           onClick={() => onNavigate('expenses')}
         />
         <ActionCard
