@@ -205,12 +205,17 @@ Tarjetas con las que el visitador puede pagar gastos. Se registran en la pantall
 del perfil fiscal; **solo se guardan los últimos 4 dígitos** (nunca el número completo).
 
 - `GET cards/?visitor=<id>` · `POST cards/` · `PATCH cards/{id}/` · `DELETE cards/{id}/`
-- Body (JSON o multipart): `visitor` (int), `bank` (`bancolombia` / `other`, default `bancolombia`),
+- Body (`application/json`; el prototipo lo manda así): `visitor` (int), `bank` (`bancolombia` / `other`, default `bancolombia`),
   `card_type` (`credit` / `debit`, default `credit`), `last4` (exactamente 4 dígitos),
   `alias` (opcional), `is_active`.
 - `DELETE`: si la tarjeta ya tiene gastos, no se borra: se **desactiva** (`is_active=false`) y
   responde `200` con la tarjeta; si no tiene gastos, `204`.
 - Duplicado (mismo visitador + banco + tipo + últimos 4) → `400`.
+- Forma de una tarjeta: `{ "id": 3, "visitor": 1, "bank": "bancolombia", "card_type": "credit",
+  "last4": "4242", "alias": "Tarjeta empresa", "is_active": true }`.
+- Para elegir tarjeta al registrar un gasto, el front lista `cards/?visitor=<id>` y **filtra
+  `is_active = true`** (las desactivadas no se ofrecen).
+- Etiqueta sugerida: `[alias · ]Banco Tipo ····last4` (ej. `Tarjeta empresa · Bancolombia Crédito ····4242`).
 
 ---
 
@@ -239,6 +244,7 @@ del perfil fiscal; **solo se guardan los últimos 4 dígitos** (nunca el número
   "visitor": 1,
   "provider": 12,
   "payment_method": "cash",
+  "card": null,
   "payer": "unergy",
   "project_name": "Granja Solar Norte",
   "invoice_number": "FE-4521",
@@ -252,8 +258,11 @@ del perfil fiscal; **solo se guardan los últimos 4 dígitos** (nunca el número
 }
 ```
 
+- `payment_method`: `cash` (efectivo), `card` (tarjeta asignada por Unergy) u `own` (**propio**:
+  el visitador pagó con su dinero o con una tarjeta que no es la que le asignó Unergy; Unergy se
+  lo reembolsa). En `own` **no** se manda `card` (`null`/omitido) y no se pide tarjeta.
 - `card`: **obligatorio si `payment_method = "card"`** (id de una tarjeta activa del mismo
-  visitador, de `cards/`); debe ser `null`/omitirse si es `cash`. Si el visitador no tiene
+  visitador, de `cards/`); debe ser `null`/omitirse si es `cash` u `own`. Si el visitador no tiene
   tarjetas, el front no debe dejar elegir "Tarjeta" y debe mandarlo a registrarla en su perfil
   fiscal. El gasto devuelve `card` (id) y `card_detail` (banco, tipo, `last4`). Sin tarjeta → `400`.
 - `provider`: el `id` del proveedor, **o `null`** para "usar mis datos" (sin
@@ -328,7 +337,9 @@ Forma de un gasto:
   "visitor": 1,
   "provider": 12,
   "document_kind": "charge_account",
-  "payment_method": "cash",
+  "payment_method": "card",
+  "card": 3,
+  "card_detail": { "bank": "bancolombia", "card_type": "credit", "last4": "4242", "alias": "Tarjeta empresa" },
   "payer": "unergy",
   "project_name": "Granja Solar Norte",
   "invoice_number": "",
@@ -372,7 +383,12 @@ Forma de un gasto:
      cobro**, y a nombre de quién: si el proveedor tiene RUT (`rut_file`), "a nombre
      del proveedor; él debe firmarla en este celular"; si no tiene RUT o es "mis
      datos", "con tus datos fiscales" (y exigir perfil fiscal, ver abajo).
-2. **Detalles:** medio de pago (efectivo/tarjeta) y proyecto (opcional). El
+2. **Detalles:** medio de pago (**Efectivo / Tarjeta / Propio**) y proyecto (opcional).
+   - **Tarjeta:** mostrar las tarjetas activas del visitador (`GET cards/`) para elegir una
+     (si solo hay una, preseleccionarla). Sin tarjetas → bloquear "Registrar" y enlazar a
+     "Mi perfil fiscal" para registrarla.
+   - **Propio:** mostrar el aviso "Úsalo si pagaste con tu dinero o con una tarjeta que no es
+     la que te asignó Unergy. Unergy te lo reembolsará." No se elige tarjeta. El
    pagador **no se pregunta**: va fijo `unergy` (Solenium se habilitará cuando se
    integre su Odoo, ver §3).
 3. **Subir la factura** → `POST expenses/extract-invoice/` (spinner) →
@@ -388,6 +404,10 @@ Forma de un gasto:
      proveedor").
 
 ### Prerequisito — Perfil fiscal
+La misma pantalla incluye la sección **"Mis tarjetas"** (§5.4): lista de tarjetas
+(banco, crédito/débito, últimos 4, alias opcional), formulario para agregar y botón
+para quitar (si ya tiene gastos solo se desactiva).
+
 Para la cuenta de cobro **a su nombre** (proveedor sin RUT o "mis datos"), el
 visitador necesita su **perfil fiscal** (§5). Sugerido:
 una pantalla "Mi perfil fiscal" (subir su RUT → `tax-profile/extract-rut/` →
@@ -400,6 +420,7 @@ Lista (`GET expenses/`) con el badge de **`review_status`** (En revisión / Acep
 - si está **en revisión** y la firma sigue pendiente (`signature_status =
   "pending"`), el badge de firma y el enlace `zapsign_sign_url`;
 - si fue **rechazado**, el `rejection_reason`;
+- si el gasto se pagó con tarjeta (`card_detail`), un badge con la tarjeta usada;
 - un botón **"Eliminar gasto"** solo si `can_delete` (con confirmación). Si el
   backend responde `409` (contabilidad lo verificó mientras tanto), avisar y
   refrescar la lista.
