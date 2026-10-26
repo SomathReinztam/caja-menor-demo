@@ -18,7 +18,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': { target: 'https://mr-1304.traefik.uner.gy', changeOrigin: true, secure: true },
+      '/api': { target: 'https://mr-1375.traefik.uner.gy', changeOrigin: true, secure: true },
     },
   },
 })
